@@ -23,3 +23,9 @@ alice 1,7
 bob 0,2,3
 carol 6
 ```
+
+This is useful when launching processes that use GPUs.
+
+```shell
+CUDA_VISIBLE_DEVICES="$(freegpus -r)" python train_model.py
+```
