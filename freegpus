@@ -13,7 +13,7 @@ def _enum_gpus():
         yield (idx, gpu)
 
 def find_free_gpus():
-    idxs = [idx for idx, gpu in _enum_gpus() if gpu['processes'] is not None]
+    idxs = [idx for idx, gpu in _enum_gpus() if gpu['processes'] is None]
     return idxs
 
 def resolve_gpu_users():
