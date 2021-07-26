@@ -1,6 +1,9 @@
 # freegpus
 
-As an alternative to running `nvidia-smi`, this utility will print the indices of unused GPUs.
+As an alternative to running `nvidia-smi`, this utility will print the indices of unused GPUs. It requires the following Python packages:
+
+* `xmltodict` 
+* `psutil`
 
 Basic usage:
 
