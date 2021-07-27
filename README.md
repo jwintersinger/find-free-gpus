@@ -18,6 +18,11 @@ Basic usage:
 ```
 
 ```shell
+> freegpus -f
+4 # Print only first free GPU
+```
+
+```shell
 > freegpus -w # Get usernames of people using GPUs
 alice 1,7
 bob 0,2,3
