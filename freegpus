@@ -19,7 +19,7 @@ def find_free_gpus():
 def resolve_gpu_users():
     from collections import defaultdict
     import psutil
-    gpu_users = defaultdict(list)
+    gpu_users = defaultdict(set)
 
     for idx, gpu in _enum_gpus():
         if gpu['processes'] is None:
@@ -30,7 +30,7 @@ def resolve_gpu_users():
         pids = [int(P['pid']) for P in pi]
         for pid in pids:
             user = psutil.Process(pid).username()
-            gpu_users[user].append(idx)
+            gpu_users[user].add(idx)
 
     return dict(gpu_users)
 
