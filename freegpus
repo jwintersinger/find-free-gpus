@@ -44,6 +44,6 @@ if __name__ == '__main__':
         if '-r' in sys.argv:
             random.shuffle(free_gpus)
         if '-f' in sys.argv:
-            print(free_gpus[0])
+            print(free_gpus[0] if len(free_gpus) > 0 else '')
         else:
             print(' '.join([str(idx) for idx in free_gpus]))
