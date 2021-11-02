@@ -12,6 +12,7 @@ def _parse_args():
     parser.add_argument('-f', '--print-only-first', action='store_true', help='Print only first available index')
     parser.add_argument('-r', '--randomize', action='store_true', help='Randomize order of indices')
     parser.add_argument('-w', '--who', action='store_true', help='Print GPUs used by each user')
+    parser.add_argument('-m', '--sort-by-memory', action='store_true', help='Sort GPUs by amount of free memory. Without this, only completely empty GPUs will be printed')
     args = parser.parse_args()
     return args
 
@@ -45,13 +46,33 @@ def resolve_gpu_users():
 
     return dict(gpu_users)
 
+def _find_gpu_with_most_free_memory():
+    free_mem = {}
+    total_mem = {}
+    for idx, gpu in _enum_gpus():
+        suffix = ' MiB'
+        free = gpu['fb_memory_usage']['free']
+        total = gpu['fb_memory_usage']['total']
+        assert free.endswith(suffix) and total.endswith(suffix)
+        free_mem[idx] = 2**20 * int(free[:-len(suffix)])
+        total_mem[idx] = 2**20 * int(total[:-len(suffix)])
+
+    sorted_gpus = sorted(free_mem.keys(), key = lambda idx: -free_mem[idx])
+    for idx in sorted_gpus:
+        print(idx, free_mem[idx], total_mem[idx], free_mem[idx] / total_mem[idx])
+    return sorted_gpus[0]
+        
 if __name__ == '__main__':
     args = _parse_args()
     if args.who:
         gpu_users = resolve_gpu_users()
         for user in sorted(gpu_users.keys()):
             print(user, ','.join([str(idx) for idx in sorted(gpu_users[user])]))
+    elif args.sort_by_memory:
+        best_gpu = _find_gpu_with_most_free_memory()
+        print(best_gpu)
     else:
+        # Show only entirely free GPUs.
         free_gpus = find_free_gpus()
         if args.randomize:
             random.shuffle(free_gpus)
