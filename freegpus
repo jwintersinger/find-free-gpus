@@ -46,7 +46,7 @@ def resolve_gpu_users():
 
     return dict(gpu_users)
 
-def _find_gpu_with_most_free_memory():
+def sort_gpus_by_free_memory():
     free_mem = {}
     total_mem = {}
     for idx, gpu in _enum_gpus():
@@ -58,23 +58,32 @@ def _find_gpu_with_most_free_memory():
         total_mem[idx] = 2**20 * int(total[:-len(suffix)])
 
     sorted_gpus = sorted(free_mem.keys(), key = lambda idx: -free_mem[idx])
-    return sorted_gpus[0]
+    return sorted_gpus
         
-if __name__ == '__main__':
+def main():
     args = _parse_args()
+
     if args.who:
         gpu_users = resolve_gpu_users()
         for user in sorted(gpu_users.keys()):
             print(user, ','.join([str(idx) for idx in sorted(gpu_users[user])]))
+        return
+
     elif args.sort_by_memory:
-        best_gpu = _find_gpu_with_most_free_memory()
-        print(best_gpu)
+        # Find GPU with most free memory.
+        gpus = sort_gpus_by_free_memory()
+        print(gpus[0])
+        return
+
     else:
         # Show only entirely free GPUs.
-        free_gpus = find_free_gpus()
+        gpus = find_free_gpus()
         if args.randomize:
-            random.shuffle(free_gpus)
+            random.shuffle(gpus)
         if args.print_only_first:
-            print(free_gpus[0] if len(free_gpus) > 0 else '')
+            print(gpus[0] if len(gpus) > 0 else '')
         else:
-            print(' '.join([str(idx) for idx in free_gpus]))
+            print(' '.join([str(idx) for idx in gpus]))
+
+if __name__ == '__main__':
+    main()
