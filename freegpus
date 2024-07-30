@@ -58,8 +58,6 @@ def _find_gpu_with_most_free_memory():
         total_mem[idx] = 2**20 * int(total[:-len(suffix)])
 
     sorted_gpus = sorted(free_mem.keys(), key = lambda idx: -free_mem[idx])
-    for idx in sorted_gpus:
-        print(idx, free_mem[idx], total_mem[idx], free_mem[idx] / total_mem[idx])
     return sorted_gpus[0]
         
 if __name__ == '__main__':
