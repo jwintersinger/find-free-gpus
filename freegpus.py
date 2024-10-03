@@ -24,6 +24,11 @@ def _parse_args():
         "-w", "--who", action="store_true", help="Print GPUs used by each user"
     )
     parser.add_argument(
+        "-o",
+        "--only-use",
+        help="Restrict GPU selection to given comma-separated indices",
+    )
+    parser.add_argument(
         "-m",
         "--sort-by-memory",
         action="store_true",
@@ -83,8 +88,22 @@ def sort_gpus_by_free_memory():
     return sorted_gpus
 
 
+def _subset(gpu_choices, only_use):
+    if not only_use:
+        return gpu_choices
+    assert (
+        only_use <= gpu_choices
+    ), f"only_use={only_use} is not subset of gpu_choices={gpu_choices}"
+    return [g for g in gpu_choices if g in only_use]
+
+
 def main():
     args = _parse_args()
+
+    if args.only_use:
+        only_use = set(int(x.strip()) for x in args.only_use.split(","))
+    else:
+        only_use = None
 
     if args.who:
         gpu_users = resolve_gpu_users()
@@ -93,14 +112,14 @@ def main():
         return
 
     elif args.sort_by_memory:
-        # Find GPU with most free memory.
-        gpus = sort_gpus_by_free_memory()
+        # Find single GPU with most free memory.
+        gpus = _subset(sort_gpus_by_free_memory(), only_use)
         print(gpus[0])
         return
 
     else:
         # Show only entirely free GPUs.
-        gpus = find_free_gpus()
+        gpus = _subset(find_free_gpus(), only_use)
         if args.randomize:
             random.shuffle(gpus)
         if args.print_only_first:
