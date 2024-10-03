@@ -89,10 +89,10 @@ def sort_gpus_by_free_memory():
 
 
 def _subset(gpu_choices, only_use):
-    if not only_use:
+    if only_use is None:
         return gpu_choices
-    assert (
-        only_use <= gpu_choices
+    assert only_use <= set(
+        gpu_choices
     ), f"only_use={only_use} is not subset of gpu_choices={gpu_choices}"
     return [g for g in gpu_choices if g in only_use]
 
