@@ -6,7 +6,7 @@ import subprocess
 import xmltodict
 
 
-def _parse_args():
+def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Find indices of free GPUs on system",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -42,17 +42,16 @@ def _enum_gpus():
     stdout = subprocess.check_output(("nvidia-smi", "-q", "-x"))
     X = xmltodict.parse(stdout)
 
-    idxs = []
     for idx, gpu in enumerate(X["nvidia_smi_log"]["gpu"]):
         yield (idx, gpu)
 
 
-def find_free_gpus():
+def find_free_gpus() -> list[int]:
     idxs = [idx for idx, gpu in _enum_gpus() if gpu["processes"] is None]
     return idxs
 
 
-def resolve_gpu_users():
+def resolve_gpu_users() -> dict[str, set[int]]:
     from collections import defaultdict
 
     import psutil
@@ -73,7 +72,7 @@ def resolve_gpu_users():
     return dict(gpu_users)
 
 
-def sort_gpus_by_free_memory():
+def sort_gpus_by_free_memory() -> list[int]:
     free_mem = {}
     total_mem = {}
     for idx, gpu in _enum_gpus():
@@ -88,12 +87,9 @@ def sort_gpus_by_free_memory():
     return sorted_gpus
 
 
-def _subset(gpu_choices, only_use):
+def _intersect(gpu_choices: list[int], only_use: set[int] | None) -> list[int]:
     if only_use is None:
         return gpu_choices
-    assert only_use <= set(
-        gpu_choices
-    ), f"only_use={only_use} is not subset of gpu_choices={gpu_choices}"
     return [g for g in gpu_choices if g in only_use]
 
 
@@ -113,13 +109,13 @@ def main():
 
     elif args.sort_by_memory:
         # Find single GPU with most free memory.
-        gpus = _subset(sort_gpus_by_free_memory(), only_use)
+        gpus = _intersect(sort_gpus_by_free_memory(), only_use)
         print(gpus[0])
         return
 
     else:
         # Show only entirely free GPUs.
-        gpus = _subset(find_free_gpus(), only_use)
+        gpus = _intersect(find_free_gpus(), only_use)
         if args.randomize:
             random.shuffle(gpus)
         if args.print_only_first:
